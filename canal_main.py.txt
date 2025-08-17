@@ -1,0 +1,195 @@
+import csv
+import os
+from datetime import datetime
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.utils import get_color_from_hex
+from plyer import share
+
+ROD_DIVISOR = 3.76  # constant divisor
+
+
+class CanalCalculator(BoxLayout):
+    def __init__(self, csv_path, **kwargs):
+        super().__init__(orientation="vertical", padding=10, spacing=10, **kwargs)
+        self.csv_path = csv_path
+
+        # Title
+        self.add_widget(Label(text="[b]Canal Rods Calculator[/b]", markup=True, font_size="22sp"))
+
+        # Inputs
+        self.name_input = TextInput(hint_text="Canal name", multiline=False)
+        self.length_input = TextInput(hint_text="Canal length", multiline=False, input_filter="float")
+        self.add_widget(self.name_input)
+        self.add_widget(self.length_input)
+
+        # Buttons
+        btns = BoxLayout(size_hint=(1, None), height=40, spacing=10)
+        calc_btn = Button(text="Calculate")
+        calc_btn.bind(on_press=self.calculate)
+        view_btn = Button(text="View Results")
+        view_btn.bind(on_press=self.view_results)
+        export_btn = Button(text="Export CSV")
+        export_btn.bind(on_press=self.export_results)
+
+        btns.add_widget(calc_btn)
+        btns.add_widget(view_btn)
+        btns.add_widget(export_btn)
+        self.add_widget(btns)
+
+        # Result label
+        self.result_label = Label(text="Enter values and tap Calculate")
+        self.add_widget(self.result_label)
+
+        # CSV init
+        if not os.path.exists(self.csv_path):
+            with open(self.csv_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["Timestamp", "Canal Name", "Length", "Rods"])
+
+    def calculate(self, _):
+        try:
+            name = (self.name_input.text or "").strip()
+            length = float((self.length_input.text or "0").strip())
+            rods = length / ROD_DIVISOR
+            self.result_label.text = f"{name}: {rods:.2f} rods"
+
+            with open(self.csv_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([datetime.now().isoformat(timespec="seconds"), name, length, round(rods, 2)])
+        except ValueError:
+            self.result_label.text = "Invalid length input"
+
+    def view_results(self, _):
+        if not os.path.exists(self.csv_path):
+            self.result_label.text = "No results yet"
+            return
+
+        scroll = ScrollView(size_hint=(1, 0.5))
+        layout = GridLayout(cols=1, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter("height"))
+
+        with open(self.csv_path, "r") as f:
+            for line in f.read().splitlines():
+                layout.add_widget(Label(text=line, font_size="14sp", size_hint_y=None, height=30))
+
+        scroll.add_widget(layout)
+        self.add_widget(scroll)
+
+    def export_results(self, _):
+        if os.path.exists(self.csv_path):
+            share.share(filepath=self.csv_path, title="Canal Results")
+        else:
+            self.result_label.text = "No results to export"
+
+
+class CanalApp(App):
+    def build(self):
+        self.csv_path = os.path.join(self.user_data_dir, "canal_results.csv")
+        return CanalCalculator(self.csv_path)
+
+
+if __name__ == "__main__":
+    CanalApp().run()import csv
+import os
+from datetime import datetime
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.utils import get_color_from_hex
+from plyer import share
+
+ROD_DIVISOR = 3.76  # constant divisor
+
+
+class CanalCalculator(BoxLayout):
+    def __init__(self, csv_path, **kwargs):
+        super().__init__(orientation="vertical", padding=10, spacing=10, **kwargs)
+        self.csv_path = csv_path
+
+        # Title
+        self.add_widget(Label(text="[b]Canal Rods Calculator[/b]", markup=True, font_size="22sp"))
+
+        # Inputs
+        self.name_input = TextInput(hint_text="Canal name", multiline=False)
+        self.length_input = TextInput(hint_text="Canal length", multiline=False, input_filter="float")
+        self.add_widget(self.name_input)
+        self.add_widget(self.length_input)
+
+        # Buttons
+        btns = BoxLayout(size_hint=(1, None), height=40, spacing=10)
+        calc_btn = Button(text="Calculate")
+        calc_btn.bind(on_press=self.calculate)
+        view_btn = Button(text="View Results")
+        view_btn.bind(on_press=self.view_results)
+        export_btn = Button(text="Export CSV")
+        export_btn.bind(on_press=self.export_results)
+
+        btns.add_widget(calc_btn)
+        btns.add_widget(view_btn)
+        btns.add_widget(export_btn)
+        self.add_widget(btns)
+
+        # Result label
+        self.result_label = Label(text="Enter values and tap Calculate")
+        self.add_widget(self.result_label)
+
+        # CSV init
+        if not os.path.exists(self.csv_path):
+            with open(self.csv_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["Timestamp", "Canal Name", "Length", "Rods"])
+
+    def calculate(self, _):
+        try:
+            name = (self.name_input.text or "").strip()
+            length = float((self.length_input.text or "0").strip())
+            rods = length / ROD_DIVISOR
+            self.result_label.text = f"{name}: {rods:.2f} rods"
+
+            with open(self.csv_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([datetime.now().isoformat(timespec="seconds"), name, length, round(rods, 2)])
+        except ValueError:
+            self.result_label.text = "Invalid length input"
+
+    def view_results(self, _):
+        if not os.path.exists(self.csv_path):
+            self.result_label.text = "No results yet"
+            return
+
+        scroll = ScrollView(size_hint=(1, 0.5))
+        layout = GridLayout(cols=1, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter("height"))
+
+        with open(self.csv_path, "r") as f:
+            for line in f.read().splitlines():
+                layout.add_widget(Label(text=line, font_size="14sp", size_hint_y=None, height=30))
+
+        scroll.add_widget(layout)
+        self.add_widget(scroll)
+
+    def export_results(self, _):
+        if os.path.exists(self.csv_path):
+            share.share(filepath=self.csv_path, title="Canal Results")
+        else:
+            self.result_label.text = "No results to export"
+
+
+class CanalApp(App):
+    def build(self):
+        self.csv_path = os.path.join(self.user_data_dir, "canal_results.csv")
+        return CanalCalculator(self.csv_path)
+
+
+if __name__ == "__main__":
+    CanalApp().run()
